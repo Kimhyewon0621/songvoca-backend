@@ -1,6 +1,6 @@
 const express = require('express');
 const dotenv = require('dotenv');
-const { Pool } = require('pg'); // library to load postgreSQL
+const pool = require('./db');
 
 dotenv.config();
 
@@ -9,14 +9,6 @@ const PORT = process.env.PORT || 8080
 
 app.use(express.json());
 
-// PostgreSQL 연결 설정 (설명서 연결)
-const pool = new Pool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_DATABASE,
-  port: process.env.DB_PORT,
-});
 
 // 데이터베이스 연결 테스트 함수
 pool.connect((err, client, release) => {
