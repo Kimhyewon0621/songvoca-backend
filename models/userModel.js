@@ -1,4 +1,4 @@
-const pool = require('./db');
+const pool = require('../db');
 
 class EmailAlreadyExistError extends Error {
   constructor(email) {
@@ -29,4 +29,4 @@ async function findByEmail(email) {
   );
 }
 
-module.exports = { create, findByEmail, UsernameTakenError };
+module.exports = { create, findByEmail, EmailAlreadyExistError };
