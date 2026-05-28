@@ -7,12 +7,13 @@ class EmailAlreadyExistError extends Error {
   }
 }
 
-async function create({email, password_hash, name}){ // return the new id
+async function create({email, password_hash, name}){ 
     try{
         const result = await pool.query(
             'INSERT INTO users (email, password_hash, name) VALUES ($1, $2, $3) RETURNING id',
             [email, password_hash, name]
         );
+        return result.rows[0].id; // return the new id
     }catch(err){
         if(err.code === 23505){
             throw new EmailAlreadyExistError(email);
@@ -20,3 +21,12 @@ async function create({email, password_hash, name}){ // return the new id
         throw err ;
     }
 }
+
+async function findByEmail(email) {
+  return await pool.query(
+    "SELECT * FROM users WHERE email = $1",
+    [email]
+  );
+}
+
+module.exports = { create, findByEmail, UsernameTakenError };
