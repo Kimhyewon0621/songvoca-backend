@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-// 노래 검색 (LRCLIB API 연동)
+// LRCLIB API to search songs by title or artist
 router.get('/search', async (req, res) => {
   try {
     const { q } = req.query;
@@ -12,8 +12,14 @@ router.get('/search', async (req, res) => {
 
     const response = await fetch(`https://lrclib.net/api/search?q=${encodeURIComponent(q)}`);
     const data = await response.json();
+
+    const filtered = data.filter(song => {
+        if (song.instrmental) return false; //exclude instrumental songs
+        if(!song.plainLyrics) return false; //exclude songs without lyrics
+        return /[가-힣]/.test(song.plainLyrics);    //onlu include songs with Korean lyrics
+    });
     
-    res.json(data);
+    res.json(filtered);
   } catch (error) {
     console.error('LRCLIB search error:', error);
     res.status(500).json({ error: 'Failed to search songs' });
