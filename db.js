@@ -9,7 +9,7 @@ const pool = new Pool({
     database: process.env.DB_DATABASE
 });
 
-async function initDatabase() {
+async function initDb() {
   const query = `
     CREATE TABLE IF NOT EXISTS users (
       id SERIAL PRIMARY KEY,
@@ -28,6 +28,6 @@ async function initDatabase() {
   }
 }
 
-initDatabase();
+initDb();
 
 module.exports = pool;
