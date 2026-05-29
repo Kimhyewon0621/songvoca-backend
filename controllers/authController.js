@@ -26,7 +26,7 @@ async function register(req, res){
 
 async function login(req, res){
     try{
-        const {email, password, name} = req.body;
+        const {email, password} = req.body;
 
         const user = await userModel.findByEmail(email);
         if(!user){
@@ -43,11 +43,11 @@ async function login(req, res){
             process.env.JWT_SECRET,
             {expiresIn : process.env.JWT_EXPIRES_IN}
         );
-        res.status(200).json({token, userEmail:user.email, userName:user.name});
+        res.status(200).json({token, id:user.id, email:user.email, name:user.name});
 
     }catch(err){
         res.status(500).json({error:"Server Error"})
     }
 }
 
-module.exports = {register};
+module.exports = {register, login};
