@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 8080
 
 app.use(express.json());
 
-app.use("/auth", authRouter);
+app.use("/api/auth", authRouter);
 
 
 // 데이터베이스 연결 테스트 함수
