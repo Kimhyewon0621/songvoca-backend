@@ -23,10 +23,11 @@ async function create({email, password_hash, name}){
 }
 
 async function findByEmail(email) {
-  return await pool.query(
+  const result = await pool.query(
     "SELECT * FROM users WHERE email = $1",
     [email]
   );
+  return result.rows[0] ;
 }
 
 module.exports = { create, findByEmail, EmailAlreadyExistError };
