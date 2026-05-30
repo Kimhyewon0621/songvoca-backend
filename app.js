@@ -1,6 +1,7 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const pool = require('./db');
+const authRouter = require("./routes/auth");
 
 dotenv.config();
 
@@ -8,6 +9,8 @@ const app = express()
 const PORT = process.env.PORT || 8080
 
 app.use(express.json());
+
+app.use("/api/auth", authRouter);
 
 
 // 데이터베이스 연결 테스트 함수
