@@ -1,0 +1,33 @@
+{
+  "name": "songvoca-backend",
+  "version": "1.0.0",
+  "description": "Web Programming Team Project - SongVoca, backend",
+  "homepage": "https://github.com/Kimhyewon0621/songvoca-backend#readme",
+  "bugs": {
+    "url": "https://github.com/Kimhyewon0621/songvoca-backend/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kimhyewon0621/songvoca-backend.git"
+  },
+  "license": "MIT",
+  "author": "Kim Hyewon, Jeong Minhee",
+  "type": "commonjs",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.21.0",
+    "swagger-ui-express": "^5.0.1",
+    "yamljs": "^0.3.0"
+  },
+  "devDependencies": {
+    "jest": "^30.4.2"
+  }
+}
