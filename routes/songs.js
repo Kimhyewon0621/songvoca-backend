@@ -19,7 +19,7 @@ router.get('/search', async (req, res) => {
         return /[가-힣]/.test(song.plainLyrics);    //onlu include songs with Korean lyrics
     });
     
-    res.json(filtered);
+    res.json(filtered[0] || null);
   } catch (error) {
     console.error('LRCLIB search error:', error);
     res.status(500).json({ error: 'Failed to search songs' });
