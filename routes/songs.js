@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const songController = require("../controllers/songController");
+const { authenticate } = require("../middleware/authMiddleware");
 
 // extract words from lyrics by using Gemini
 router.post('/extract', async (req, res) => {
@@ -79,4 +81,8 @@ ${lyrics}`;
   }
 });
 
+router.post("/", authenticate, songController.create);
+router.get("/", authenticate, songController.getAll);
+router.get("/:id", authenticate, songController.getById);
+router.delete("/:id", authenticate, songController.remove)
 module.exports = router;
