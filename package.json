@@ -15,7 +15,12 @@
   "type": "commonjs",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:coverage": "jest --coverage"
+  },
+    "jest": {
+    "testEnvironment": "node",
+    "setupFiles": ["<rootDir>/tests/setup.js"]
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
