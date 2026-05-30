@@ -1,7 +1,34 @@
 const express = require('express');
 const router = express.Router();
 
-// extract words from lyrics by using Gemini
+// LRCLIB API to search songs by title or artist
+router.get('/search', async (req, res) => {
+  try {
+    const { q } = req.query;
+    
+    if (!q) {
+      return res.status(400).json({ error: 'Query parameter "q" is required' });
+    }
+
+    const response = await fetch(`https://lrclib.net/api/search?q=${encodeURIComponent(q)}`);
+    const data = await response.json();
+
+    const filtered = data.filter(song => {
+        if (song.instrmental) return false; //exclude instrumental songs
+        if(!song.plainLyrics) return false; //exclude songs without lyrics
+        return /[가-힣]/.test(song.plainLyrics);    //onlu include songs with Korean lyrics
+    });
+    
+    res.json(filtered[0] || null);
+  } catch (error) {
+    console.error('LRCLIB search error:', error);
+    res.status(500).json({ error: 'Failed to search songs' });
+  }
+});
+
+module.exports = router;
+
+//extract words from lyrics using Gemini API
 router.post('/extract', async (req, res) => {
   try {
     const { lyrics } = req.body;
@@ -16,7 +43,7 @@ Rules:
 - Skip grammar particles, conjunctions, and very basic words
 - Focus on content words with clear meaning (nouns, verbs, adjectives, adverbs)
 - Return ONLY a JSON array, no explanation, no markdown, no code block
-- Maximum 20 words
+- Maximum 8 words
 
 Format:
 [
@@ -41,42 +68,16 @@ ${lyrics}`;
       }
     );
 
-    if (!response.ok) {
-      console.error('Gemini API error:', response.status);
-      return res.status(500).json({ error: 'Gemini API request failed' });
-    }
-
     const data = await response.json();
-    
-    // verify res
-    if (!data.candidates || !data.candidates[0]?.content?.parts?.[0]?.text) {
-      console.error('Unexpected Gemini response:', data);
-      return res.status(500).json({ error: 'Invalid response from Gemini' });
-    }
-
     const text = data.candidates[0].content.parts[0].text;
     
-    // eliminate codeblock and JSON parsing
+    // JSON parsing (eliminate code blocks)
     const cleanedText = text.replace(/```json|```/g, '').trim();
+    const words = JSON.parse(cleanedText);
     
-    let words;
-    try {
-      words = JSON.parse(cleanedText);
-    } catch (parseError) {
-      console.error('JSON parse error:', cleanedText);
-      return res.status(500).json({ error: 'Failed to parse Gemini response' });
-    }
-
-    // verify array
-    if (!Array.isArray(words)) {
-      return res.status(500).json({ error: 'Gemini returned invalid format' });
-    }
-
     res.json(words);
   } catch (error) {
     console.error('Gemini extract error:', error);
     res.status(500).json({ error: 'Failed to extract words' });
   }
 });
-
-module.exports = router;
