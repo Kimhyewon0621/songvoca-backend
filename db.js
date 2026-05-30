@@ -18,6 +18,35 @@ async function initDb() {
       name VARCHAR(50) NOT NULL, -- there may be users whose names are same
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
+
+    CREATE TABLE IF NOT EXISTS songs (
+      id SERIAL  PRIMARY KEY,
+      user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+      title VARCHAR(255) NOT NULL,
+      artist VARCHAR(255) NOT NULL,
+      lyrics TEXT,
+      study_status VARCHAR(20) DEFAULT 'not_started',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS words (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+      song_id INTEGER REFERENCES songs(id) ON DELETE CASCADE,
+      word VARCHAR(100) NOT NULL,
+      pos VARCHAR(50),
+      definition TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS studylogs (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+      word_id INTEGER REFERENCES words(id) ON DELETE CASCADE,
+      is_correct BOOLEAN NOT NULL,
+      studied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    
   `;
   
   try {
