@@ -27,3 +27,57 @@ router.get('/search', async (req, res) => {
 });
 
 module.exports = router;
+
+//extract words from lyrics using Gemini API
+router.post('/extract', async (req, res) => {
+  try {
+    const { lyrics } = req.body;
+    
+    if (!lyrics) {
+      return res.status(400).json({ error: 'Lyrics are required' });
+    }
+
+    const prompt = `Extract Korean vocabulary from the following lyrics that would be useful for an intermediate learner (TOPIK level 3+).
+
+Rules:
+- Skip grammar particles, conjunctions, and very basic words
+- Focus on content words with clear meaning (nouns, verbs, adjectives, adverbs)
+- Return ONLY a JSON array, no explanation, no markdown, no code block
+- Maximum 8 words
+
+Format:
+[
+  {
+    "word": "Korean word (dictionary form)",
+    "pos": "noun/verb/adjective/adverb",
+    "definition": "English definition"
+  }
+]
+
+Lyrics:
+${lyrics}`;
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }]
+        })
+      }
+    );
+
+    const data = await response.json();
+    const text = data.candidates[0].content.parts[0].text;
+    
+    // JSON parsing (eliminate code blocks)
+    const cleanedText = text.replace(/```json|```/g, '').trim();
+    const words = JSON.parse(cleanedText);
+    
+    res.json(words);
+  } catch (error) {
+    console.error('Gemini extract error:', error);
+    res.status(500).json({ error: 'Failed to extract words' });
+  }
+});
