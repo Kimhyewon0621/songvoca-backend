@@ -6,7 +6,8 @@ const userModel = require("../models/userModel");
 
 beforeEach( () => {jest.clearAllMocks(); });
 
-describe("POST /api/auth/register", () =>{
+// test for register feature
+describe("POST /api/auth/register", () =>{ 
     test("returns 400 when the input body is wrong", async () =>{
         const body = {email : "this-is-not-an-email", password : "testpassword", name : "testuser"};
         const res = await request(app).post("/api/auth/register").send(body);
