@@ -57,6 +57,5 @@ async function initDb() {
   }
 }
 
-initDb();
 
-module.exports = pool;
+module.exports = {pool, initDb};
