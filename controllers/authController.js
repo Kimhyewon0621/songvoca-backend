@@ -4,12 +4,11 @@ const userModel = require("../models/userModel");
 
 async function register(req, res){
     try{
-        const error = validateRegisterInfo(req.body);
-        if (error) {
-            return res.status(400).json({ error });
-        }
 
         const {email, password, name} = req.body ;
+        if(!email || !password || !name){
+            return res.status(400).json({error: "email, password and name required"});
+        }
 
         const password_hash = await bcrypt.hash(password, 10);
         const id = await userModel.create({email, password_hash, name});
@@ -51,19 +50,4 @@ async function login(req, res){
     }
 }
 
-// originall, the register function also checked if the body contains all three infos
-// separated it with new function for easy testing
-function validateRegisterInfo({email, password, name}){ // 
-    if(!email || !password || !name){
-        return "email, password, and name are required.";
-    }
-    if(!email.includes("@")){
-        return "Please enter valid format of email, such as maria@example.com.";
-    }
-    if(password.length < 6){
-        return "Password should be at least 6 characters.";
-    }
-    return null ;
-}
-
-module.exports = {register, login, validateRegisterInfo};
+module.exports = {register, login};
