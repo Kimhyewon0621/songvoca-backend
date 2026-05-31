@@ -6,7 +6,7 @@ describe("utils : validate register information", () =>{
     //test : individual test case
     test("returns null when all fields are valid",() => {
         const body = {email : "testemail@example.com", password : "testpassword", name : "testuser"};
-        expect(validateRegisterInfo(body)).tobeNull();
+        expect(validateRegisterInfo(body)).toBeNull();
     });
 
     test("returns an error when a required field is missing", () => {
