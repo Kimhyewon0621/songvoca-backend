@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const songController = require("../controllers/songController");
 const { authenticate } = require("../middleware/authMiddleware");
+const wordController = require('../controllers/wordController');
 
 // LRCLIB API to search songs by title or artist
 router.get('/search', async (req, res) => {
@@ -27,6 +28,8 @@ router.get('/search', async (req, res) => {
     res.status(500).json({ error: 'Failed to search songs' });
   }
 });
+
+router.get('/:id/words', authenticate, wordController.getBySongId);
 
 module.exports = router;
 
