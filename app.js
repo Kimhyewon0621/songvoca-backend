@@ -1,7 +1,7 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors'); 
-const corsMiddleware = require('./middlewares/corsMiddleware'); 
+const corsMiddleware = require('./middleware/corsMiddleware'); 
 const authRouter = require("./routes/auth");
 const songsRouter = require("./routes/songs");
 
