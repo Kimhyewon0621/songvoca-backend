@@ -1,4 +1,4 @@
-const pool = require('../db');
+const { pool } = require('../db');
 
 // Check the list of words in the song
 async function findBySongId(song_id, user_id) {
