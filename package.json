@@ -15,7 +15,15 @@
   "type": "commonjs",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js",
+    "test": "jest",
+    "test:coverage": "jest --coverage"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "setupFiles": [
+      "<rootDir>/tests/setup.js"
+    ]
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
@@ -28,6 +36,7 @@
     "yamljs": "^0.3.0"
   },
   "devDependencies": {
-    "jest": "^30.4.2"
+    "jest": "^30.4.2",
+    "supertest": "^7.2.2"
   }
 }
