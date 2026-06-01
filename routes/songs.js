@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const songController = require("../controllers/songController");
+const { authenticate } = require("../middleware/authMiddleware");
 
 // LRCLIB API to search songs by title or artist
 router.get('/search', async (req, res) => {
@@ -81,3 +83,9 @@ ${lyrics}`;
     res.status(500).json({ error: 'Failed to extract words' });
   }
 });
+
+router.post("/", authenticate, songController.create);
+router.get("/", authenticate, songController.getAll);
+router.get("/:id", authenticate, songController.getById);
+router.delete("/:id", authenticate, songController.remove)
+module.exports = router;
