@@ -34,8 +34,10 @@ router.get('/:id/words', authenticate, wordController.getBySongId);
 module.exports = router;
 
 //extract words from lyrics using Gemini API
-router.post('/extract', async (req, res) => {
+router.post('/:id/extract', authenticate, async (req, res) => {
   try {
+    const user_id = req.user.id;
+    const { id } = req.params;
     const { lyrics } = req.body;
     
     if (!lyrics) {
@@ -73,19 +75,51 @@ ${lyrics}`;
       }
     );
 
+    if (!response.ok) {
+      console.error('Gemnini API error:', response.status);
+      return res.status(500).json({ error: 'Gemini API request failed' });
+    }
+
     const data = await response.json();
+
+    if (!data.candidates || !data.candidates[0]?.content?.parts?.[0]?.text) {
+      return res.status(500).json({ error: 'Invalid response from Gemini' });
+    }
+
     const text = data.candidates[0].content.parts[0].text;
-    
-    // JSON parsing (eliminate code blocks)
     const cleanedText = text.replace(/```json|```/g, '').trim();
-    const words = JSON.parse(cleanedText);
     
-    res.json(words);
+    let words;
+    try {
+      words = JSON.parse(cleanedText);
+    } catch (parseError) {
+      return res.status(500).json({ error: 'Failed to parse Gemini response' });
+    }
+
+    if (!Array.isArray(words)) {
+      return res.status(500).json({ error: 'Gemini returned invalid format' });
+    }
+
+    // store in DB
+    const { pool } = require('../db');
+    const savedWords = [];
+    for (const w of words) {
+      const result = await pool.query(
+        `INSERT INTO words (user_id, song_id, word, pos, definition)
+         VALUES ($1, $2, $3, $4, $5)
+         RETURNING id, song_id, word, pos, definition`,
+        [user_id, id, w.word, w.pos, w.definition]
+      );
+      savedWords.push(result.rows[0]);
+    }
+
+    res.json(savedWords);
   } catch (error) {
     console.error('Gemini extract error:', error);
     res.status(500).json({ error: 'Failed to extract words' });
   }
 });
+    
 
 router.post("/", authenticate, songController.create);
 router.get("/", authenticate, songController.getAll);
