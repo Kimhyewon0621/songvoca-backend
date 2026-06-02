@@ -1,8 +1,12 @@
+const { GoogleGenAI } = require("@google/genai");
 const express = require('express');
 const router = express.Router();
 const songController = require("../controllers/songController");
-const { authenticate } = require("../middleware/authMiddleware");
 const wordController = require('../controllers/wordController');
+const { authenticate } = require("../middleware/authMiddleware");
+const { pool } = require('../db');
+
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 // LRCLIB API to search songs by title or artist
 router.get('/search', async (req, res) => {
@@ -17,9 +21,9 @@ router.get('/search', async (req, res) => {
     const data = await response.json();
 
     const filtered = data.filter(song => {
-        if (song.instrmental) return false; //exclude instrumental songs
-        if(!song.plainLyrics) return false; //exclude songs without lyrics
-        return /[가-힣]/.test(song.plainLyrics);    //onlu include songs with Korean lyrics
+        if (song.instrumental) return false;
+        if (!song.plainLyrics) return false;
+        return /[가-힣]/.test(song.plainLyrics);
     });
     
     res.json(filtered[0] || null);
@@ -29,11 +33,7 @@ router.get('/search', async (req, res) => {
   }
 });
 
-router.get('/:id/words', authenticate, wordController.getBySongId);
-
-module.exports = router;
-
-//extract words from lyrics using Gemini API
+// Extract words from lyrics using Gemini API
 router.post('/:id/extract', authenticate, async (req, res) => {
   try {
     const user_id = req.user.id;
@@ -50,7 +50,7 @@ Rules:
 - Skip grammar particles, conjunctions, and very basic words
 - Focus on content words with clear meaning (nouns, verbs, adjectives, adverbs)
 - Return ONLY a JSON array, no explanation, no markdown, no code block
-- Maximum 8 words
+- Maximum 20 words
 
 Format:
 [
@@ -64,29 +64,18 @@ Format:
 Lyrics:
 ${lyrics}`;
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }]
-        })
-      }
-    );
-
-    if (!response.ok) {
-      console.error('Gemnini API error:', response.status);
+    let text;
+    try {
+      const result = await ai.models.generateContent({
+        model: "gemini-2.5-flash-lite",
+        contents: prompt,
+      });
+      text = result.text;
+    } catch (apiError) {
+      console.error('Gemini API error:', apiError);
       return res.status(500).json({ error: 'Gemini API request failed' });
     }
 
-    const data = await response.json();
-
-    if (!data.candidates || !data.candidates[0]?.content?.parts?.[0]?.text) {
-      return res.status(500).json({ error: 'Invalid response from Gemini' });
-    }
-
-    const text = data.candidates[0].content.parts[0].text;
     const cleanedText = text.replace(/```json|```/g, '').trim();
     
     let words;
@@ -100,8 +89,7 @@ ${lyrics}`;
       return res.status(500).json({ error: 'Gemini returned invalid format' });
     }
 
-    // store in DB
-    const { pool } = require('../db');
+    // Save to DB
     const savedWords = [];
     for (const w of words) {
       const result = await pool.query(
@@ -119,10 +107,12 @@ ${lyrics}`;
     res.status(500).json({ error: 'Failed to extract words' });
   }
 });
-    
 
+// Song CRUD
 router.post("/", authenticate, songController.create);
 router.get("/", authenticate, songController.getAll);
 router.get("/:id", authenticate, songController.getById);
-router.delete("/:id", authenticate, songController.remove)
+router.delete("/:id", authenticate, songController.remove);
+router.get('/:id/words', authenticate, wordController.getBySongId);
+
 module.exports = router;
