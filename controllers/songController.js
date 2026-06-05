@@ -28,12 +28,22 @@ async function getAll(req, res) {
   }
 }
 
+// All songs (public, no auth)
+async function getAllPublic(req, res) {
+  try {
+    const songs = await songModel.findAll();
+    res.status(200).json(songs);
+  } catch (err) {
+    console.error('Get public songs error:', err);
+    res.status(500).json({ error: 'Server Error' });
+  }
+}
+
 async function getById(req, res) {
   try {
-    const user_id = req.user.id;
     const { id } = req.params;
 
-    const song = await songModel.findById(id, user_id);
+    const song = await songModel.findByIdPublic(id);
     if (!song) {
       return res.status(404).json({ error: 'Song not found' });
     }
@@ -60,4 +70,4 @@ async function remove(req, res) {
   }
 }
 
-module.exports = { create, getAll, getById, remove };
+module.exports = { create, getAll, getAllPublic, getById, remove };
