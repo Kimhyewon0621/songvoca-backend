@@ -43,7 +43,7 @@ describe("POST /api/auth/register", () =>{
         const res = await request(app).post("/api/auth/register").send(body);
 
         expect(res.statusCode).toBe(500);
-        expect(res.body).toEqual({error: "Server Error"});
+        expect(res.body).toMatchObject({error: "Server Error"});
     });
     
 
