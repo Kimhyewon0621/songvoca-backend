@@ -1,4 +1,4 @@
-const pool = require("../db");
+const {pool} = require("../db");
 
 async function create({ user_id, title, artist, lyrics}) {
     const result = await pool.query(
