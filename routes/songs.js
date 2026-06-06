@@ -26,7 +26,16 @@ router.get('/search', async (req, res) => {
         return /[가-힣]/.test(song.plainLyrics);
     });
     
-    res.json(filtered[0] || null);
+    // Deduplicate by song title + artist (keep first occurrence)
+     const seen = new Set();
+    const unique = filtered.filter(song => {
+      const key = song.plainLyrics.substring(0, 100);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    
+    res.json(unique);
   } catch (error) {
     console.error('LRCLIB search error:', error);
     res.status(500).json({ error: 'Failed to search songs' });
@@ -109,9 +118,10 @@ ${lyrics}`;
 });
 
 // Song CRUD
+router.get("/public", songController.getAllPublic);
 router.post("/", authenticate, songController.create);
 router.get("/", authenticate, songController.getAll);
-router.get("/:id", authenticate, songController.getById);
+router.get("/:id", songController.getById);
 router.delete("/:id", authenticate, songController.remove);
 router.get('/:id/words', authenticate, wordController.getBySongId);
 

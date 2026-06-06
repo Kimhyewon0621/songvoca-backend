@@ -23,6 +23,16 @@ async function findAllByUserId(user_id) {
     return result.rows;
 }
 
+// Find all songs (no user filter)
+async function findAll() {
+  const result = await pool.query(
+    `SELECT id, title, artist, study_status
+     FROM songs
+     ORDER BY created_at DESC`
+  );
+  return result.rows;
+}
+
 async function findById(id, user_id) {
     const result = await pool.query(
         `SELECT id, title, artist, lyrics, study_status
@@ -34,6 +44,17 @@ async function findById(id, user_id) {
     return result.rows[0];
 }
 
+// Find by id (no user filter)
+async function findByIdPublic(id) {
+  const result = await pool.query(
+    `SELECT id, title, artist, lyrics, study_status
+     FROM songs
+     WHERE id = $1`,
+    [id]
+  );
+  return result.rows[0];
+}
+
 async function deleteById(id, user_id) {
     const result = await pool.query(
         `DELETE FROM songs WHERE id = $1 AND user_id = $2 RETURNING id`,
@@ -42,4 +63,5 @@ async function deleteById(id, user_id) {
     return result.rows[0];
 }
 
-module.exports = {create, findAllByUserId, findById, deleteById};
+
+module.exports = {create, findAllByUserId, findAll, findById, findByIdPublic, deleteById};
