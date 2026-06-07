@@ -32,4 +32,30 @@ async function deleteById(id, user_id) {
   return result.rows[0];
 }
 
+// find the user's currently know words
+async function getKnowWords(user_id){
+  const result = await pool.query(
+    `WITH RankedLogs AS (
+      SELECT 
+          word_id,
+          is_correct,
+          ROW_NUMBER() OVER (PARTITION BY word_id ORDER BY studied_at DESC) as num
+      FROM 
+          studylogs
+      WHERE 
+          user_id = $1
+  )
+  SELECT 
+      COUNT(*)::INTEGER as correct_word_count
+  FROM 
+      RankedLogs
+  WHERE 
+      num = 1 
+      AND is_correct = TRUE;`,
+  [user_id]
+  );
+  return result.rows[0].correct_word_count;
+}
+
 module.exports = { findBySongId, findAllByUserId, deleteById };
+
