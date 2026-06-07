@@ -1,6 +1,8 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors'); 
+const swaggerUi = require("swagger-ui-express");
+const YAML = require("yamljs");
 const corsMiddleware = require('./middleware/corsMiddleware'); 
 const authRouter = require("./routes/auth");
 const songsRouter = require("./routes/songs");
@@ -24,5 +26,7 @@ app.use('/api/study-logs', studylogsRouter);
 app.get('/', (req, res) => {
     res.send('Voca 프로젝트 백엔드 서버 작동 중!');
 });
+const swaggerDocument = YAML.load("./openapi.yaml");
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 module.exports = app;
