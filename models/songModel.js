@@ -26,9 +26,9 @@ async function findAllByUserId(user_id) {
 // Find all songs (no user filter)
 async function findAll() {
   const result = await pool.query(
-    `SELECT id, title, artist, study_status
+    `SELECT DISTINCT ON (title, artist) id, title, artist
      FROM songs
-     ORDER BY created_at DESC`
+     ORDER BY title, artist, created_at DESC`
   );
   return result.rows;
 }
