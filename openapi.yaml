@@ -326,7 +326,7 @@ components:
       properties :
         email: { type: string, example: maria@examle.com }
         password: {type: string, example: passkey }
-        name:{type: string, example: Maria}
+        name: {type: string, example: Maria}
 
     RegisterResponse:
       type : object
