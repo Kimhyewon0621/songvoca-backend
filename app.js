@@ -26,6 +26,7 @@ app.use('/api/study-logs', studylogsRouter);
 app.get('/', (req, res) => {
     res.send('Voca 프로젝트 백엔드 서버 작동 중!');
 });
+
 const swaggerDocument = YAML.load("./openapi.yaml");
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
