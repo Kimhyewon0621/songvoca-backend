@@ -29,4 +29,24 @@ async function create(req, res) {
   }
 }
 
-module.exports = { create };
+// Get study logs (optional song_id filter)
+async function getAll(req, res) {
+  try {
+    const user_id = req.user.id;
+    const { song_id } = req.query;
+
+    let logs;
+    if (song_id) {
+      logs = await studyLogModel.findByUserAndSong(user_id, song_id);
+    } else {
+      logs = await studyLogModel.findByUserId(user_id);
+    }
+
+    res.status(200).json(logs);
+  } catch (err) {
+    console.error('Get study logs error:', err);
+    res.status(500).json({ error: 'Server Error' });
+  }
+}
+
+module.exports = { create, getAll };

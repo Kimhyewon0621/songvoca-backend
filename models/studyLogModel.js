@@ -62,4 +62,29 @@ async function updateSongStatus(song_id, status) {
   );
 }
 
-module.exports = { create, getSongIdByWordId, calculateSongStatus, updateSongStatus };
+// Get all study logs for a user
+async function findByUserId(user_id) {
+  const result = await pool.query(
+    `SELECT id, user_id, word_id, is_correct, studied_at
+     FROM studylogs
+     WHERE user_id = $1
+     ORDER BY studied_at DESC`,
+    [user_id]
+  );
+  return result.rows;
+}
+
+// Get study logs for a specific song (joins through words)
+async function findByUserAndSong(user_id, song_id) {
+  const result = await pool.query(
+    `SELECT sl.id, sl.user_id, sl.word_id, sl.is_correct, sl.studied_at
+     FROM studylogs sl
+     JOIN words w ON sl.word_id = w.id
+     WHERE sl.user_id = $1 AND w.song_id = $2
+     ORDER BY sl.studied_at DESC`,
+    [user_id, song_id]
+  );
+  return result.rows;
+}
+
+module.exports = { create, getSongIdByWordId, calculateSongStatus, updateSongStatus, findByUserId, findByUserAndSong };
