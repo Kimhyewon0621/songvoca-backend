@@ -1,0 +1,447 @@
+openapi: 3.0.0
+info:
+  title: SongVoca API
+  version: 1.0.0
+  description: Backend service that manages user, songs, and words for the songvoca project.
+
+servers:
+  - url: https://songvoca-backend.onrender.com
+    description: Render deployment server
+
+paths:
+  /api/auth/register:
+    post:
+      summary: Create a new user account
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegisterInfo' }
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RegisterResponse' }
+        "400":
+          description: Invalid input format
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        "409":
+          description: Username already exists
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /api/auth/login:
+    post:
+      summary: Authenticate and receive a JWT
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Credentials' }
+      responses:
+        "200":
+          description: Authentication successful
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LoginResponse' }
+        "400":
+          description: Missing email or password
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+  
+  /api/auth/logout:
+  
+  /api/auth/me:
+
+  /api/songs/search:
+    get:
+      summary: Search songs with Korean word via LRCLIB
+      parameters: # query parameters
+        - name: q
+          in: query
+          required: true
+          description: the title or artist of the song
+          schema: { type: string }
+      responses:
+        "200":
+          description: Search success
+          content:
+            application/json:
+              schema:
+                type: array 
+                items: { $ref: '#/components/schemas/Song' }
+        "400":
+          description: missing query
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /api/songs:
+    get:
+      summary: List my songs
+      responses:
+        "200":
+          description: Search success
+          content:
+            application/json:
+              schema:
+                type: array 
+                items: { $ref: '#/components/schemas/SongAll' }
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+    post:
+      summary: Save a song
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SongSave' }
+      responses:
+        "200":
+          description: Save success
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LoginResponse' }
+        "400":
+          description: title, artist or lyrics
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+            
+  /api/songs/public:
+
+  /api/songs/{id}:
+    delete:
+      summary: Delete a song by id (protected)
+      tags: [Flights]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Song deleted
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Message' }           
+        "404":
+          description: Song not found
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }  
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }              
+    get:
+      summary: Get song detail + lyrics
+      responses:
+        "200":
+          description: Search success
+          content:
+            application/json:
+              schema:
+                type: array 
+                items: { $ref: '#/components/schemas/SongId' }
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /api/songs/{id}/extract:
+    post:
+      summary: Extract vocabulary via Gemini
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: song id
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [lyrics]
+              properties:
+                lyrics: { type: string, example: "낮에는 따사로운 인간적인 여자..." }
+      responses:
+        "200":
+          description: Word successfully generated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ExtractedWord' }
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /api/songs/{id}/words:
+    get:
+      summary: List words for a song
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: song id
+          schema: { type: integer }
+      responses:
+        "200":
+          description: word find success
+          content:
+            application/json:
+              schema:
+                type: array 
+                items: { $ref: '#/components/schemas/Word' }
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /api/study-logs:
+    post:
+      summary: Record word study log
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/WordStudy' }
+      responses:
+        "201":
+          description: Study log recorded
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/StudyLog' }
+        "400":
+          description: Invalid input format
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /api/words:
+    get:
+      summary: List my words
+      responses:
+        "200":
+          description: Search success
+          content:
+            application/json:
+              schema:
+                type: array 
+                items: { $ref: '#/components/schemas/ListedWord' }
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }  
+
+  /api/words/{id}:
+    delete:
+      summary: Delete a word card
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Word deleted
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Message' }           
+        "404":
+          description: Word not found
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }  
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }   
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    RegisterInfo:
+      type : object
+      required :[email, password, name]
+      properties :
+        email: { type : String, example : maria@examle.com }
+        password: {type: string, example: passkey }
+        name:{type: string, example: Maria}
+
+    RegisterResponse:
+      type : object
+      properties :
+        id: {type: integer, example: 1}
+        email: {type: string, example: maria@examle.com}    
+
+    Error:
+      type: object
+      properties:
+        error: { type: string }
+
+    Credentials:
+      type : object
+      required :[email, password, name]
+      properties :
+        email: { type : String, example : maria@examle.com }
+        password: {type: string, example: passkey }
+
+    LoginResponse:
+      type: object
+      properties:
+        token: { type: string, example: "eyJhbGciOiJIUzI1NiIsInR5cCI6Ikp..." }      
+        email: { type: string, example: "alice" }  
+        name: {type: string, example: Maria}    
+    
+    Song:
+      type: object
+      properties:
+        id: { type: integer, example: 12345 }
+        trackName: { type: string, example: "강남스타일" }
+        artistName: { type: string, example: "싸이 (Psy)" }
+        albumName: { type: string, example: "싸이6甲 Part 1" }
+        duration: { type: integer, example: 219 }
+        instrumental: { type: boolean, example: false }
+        plainLyrics: { type: string, example: "낮에는 따사로운 인간적인 여자..." }
+        syncedLyrics: { type: string, example: "[00:12.34] 낮에는 따사로운..." }
+
+    Songid:
+      type: object
+      properties:
+        id: { type: integer, example: 1 }
+        title: { type: string, example: "강남스타일" }
+        artist: { type: string, example: "싸이 (Psy)" }
+        lyrics: { type: string, example: "낮에는 따사로운 인간적인 여자..." }
+        study_status: { type: string, example: "not_started" }
+
+    SongAll:
+      type: object
+      properties:
+        id: { type: integer, example: 1 }
+        title: { type: string, example: "강남스타일" }
+        artist: { type: string, example: "싸이 (Psy)" }
+        study_status: { type: string, example: "not_started" }
+
+    SongSave:
+      type: object
+      properties:
+        title: { type: string, example: "강남스타일" }
+        artist: { type: string, example: "싸이 (Psy)" }
+        lyrics: { type: string, example: "낮에는 따사로운 인간적인 여자..." }
+
+    Message:
+      type: object
+      properties:
+        message: { type: string, example : "deleted" }
+
+    ExtractedWord:
+      type: object
+      properties:
+        user_id: { type: integer, example: 1 }
+        song_id: { type: integer, example: 5 }
+        word: { type: string, example: "그립다" }
+        pos: { type: string, example: "adjective" }
+        definition: { type: string, example: "to miss, to long for" }
+
+    Word:
+      type: object
+      properties:
+        id: { type: integer, example: 1 }
+        song_id: { type: integer, example: 5 }
+        word: { type: string, example: "그립다" }
+        pos: { type: string, example: "adjective" }
+        definition: { type: string, example: "to miss, to long for" }
+
+    WordStudy:
+      type: object
+      properties:
+        word_id: { type: integer, example: 53 }
+        is_correct: { type: boolean, example: false }
+
+    StudyLog:
+      type: object
+      properties:
+        id: { type: integer, example: 105 }
+        user_id: { type: integer, example: 12 }
+        word_id: { type: integer, example: 345 }
+        is_correct: { type: boolean, example: true }
+        studied_at: { type: string, format: date-time, example: "2026-06-08T01:20:00.000Z" }
+
+    ListedWord:
+      type: object
+      properties:
+        id: { type: integer, example: 1 }
+        word: { type: string, example: "그립다" }
+        pos: { type: string, example: "adjective" }
+        definition: { type: string, example: "to miss, to long for" }
+        song_title: { type: string, example: "강남스타일" }
+
+
+
+
+
+
+
+
+
+
