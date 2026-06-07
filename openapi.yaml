@@ -72,12 +72,15 @@ paths:
               schema: { $ref: '#/components/schemas/Error' }
   
   /api/auth/logout:
-  
+
   /api/auth/me:
 
   /api/songs/search:
     get:
       summary: Search songs with Korean word via LRCLIB
+      tags: [Songs]
+      security:
+        - bearerAuth: []
       parameters: # query parameters
         - name: q
           in: query
@@ -106,6 +109,9 @@ paths:
   /api/songs:
     get:
       summary: List my songs
+      tags: [Songs]  
+      security:
+        - bearerAuth: []    
       responses:
         "200":
           description: Search success
@@ -121,7 +127,9 @@ paths:
               schema: { $ref: '#/components/schemas/Error' }
     post:
       summary: Save a song
-      tags: [Auth]
+      tags: [Songs]
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -149,7 +157,7 @@ paths:
   /api/songs/{id}:
     delete:
       summary: Delete a song by id (protected)
-      tags: [Flights]
+      tags: [Songs]
       security:
         - bearerAuth: []
       parameters:
@@ -175,6 +183,7 @@ paths:
               schema: { $ref: '#/components/schemas/Error' }              
     get:
       summary: Get song detail + lyrics
+      tags: [Songs]   
       responses:
         "200":
           description: Search success
@@ -182,7 +191,7 @@ paths:
             application/json:
               schema:
                 type: array 
-                items: { $ref: '#/components/schemas/SongId' }
+                items: { $ref: '#/components/schemas/Songid' }
         "500":
           description: Server error
           content:
@@ -192,6 +201,9 @@ paths:
   /api/songs/{id}/extract:
     post:
       summary: Extract vocabulary via Gemini
+      tags: [Songs]
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -222,6 +234,9 @@ paths:
   /api/songs/{id}/words:
     get:
       summary: List words for a song
+      tags: [Songs]
+      security:
+        - bearerAuth: [] 
       parameters:
         - name: id
           in: path
@@ -245,7 +260,9 @@ paths:
   /api/study-logs:
     post:
       summary: Record word study log
-      tags: [Auth]
+      tags: [StudyLogs]
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -271,6 +288,9 @@ paths:
   /api/words:
     get:
       summary: List my words
+      tags: [Words]
+      security:
+        - bearerAuth: []      
       responses:
         "200":
           description: Search success
@@ -288,6 +308,7 @@ paths:
   /api/words/{id}:
     delete:
       summary: Delete a word card
+      tags: [Words]      
       security:
         - bearerAuth: []
       parameters:
