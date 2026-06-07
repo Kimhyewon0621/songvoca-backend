@@ -322,9 +322,9 @@ components:
   schemas:
     RegisterInfo:
       type : object
-      required :[email, password, name]
+      required : [email, password, name]
       properties :
-        email: { type : String, example : maria@examle.com }
+        email: { type: string, example: maria@examle.com }
         password: {type: string, example: passkey }
         name:{type: string, example: Maria}
 
@@ -341,7 +341,7 @@ components:
 
     Credentials:
       type : object
-      required :[email, password, name]
+      required : [email, password, name]
       properties :
         email: { type : String, example : maria@examle.com }
         password: {type: string, example: passkey }
