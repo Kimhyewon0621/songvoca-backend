@@ -50,3 +50,38 @@ describe("POST /api/study-logs", () => {
     expect(res.statusCode).toBe(401);
   });
 });
+
+describe("GET /api/study-logs", () => {
+  test("returns 200 with all user's study logs", async () => {
+    const mockLogs = [
+      { id: 1, user_id: 1, word_id: 5, is_correct: true, studied_at: "2026-06-05T18:45:37.518Z" }
+    ];
+    studyLogModel.findByUserId.mockResolvedValue(mockLogs);
+
+    const res = await request(app)
+      .get("/api/study-logs")
+      .set("Authorization", `Bearer ${getToken()}`);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toEqual(mockLogs);
+  });
+
+  test("returns 200 with study logs filtered by song_id", async () => {
+    const mockLogs = [
+      { id: 1, user_id: 1, word_id: 5, is_correct: true, studied_at: "2026-06-05T18:45:37.518Z" }
+    ];
+    studyLogModel.findByUserAndSong.mockResolvedValue(mockLogs);
+
+    const res = await request(app)
+      .get("/api/study-logs?song_id=2")
+      .set("Authorization", `Bearer ${getToken()}`);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toEqual(mockLogs);
+  });
+
+  test("returns 401 when no token is provided", async () => {
+    const res = await request(app).get("/api/study-logs");
+    expect(res.statusCode).toBe(401);
+  });
+});
