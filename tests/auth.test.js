@@ -3,9 +3,21 @@ const app = require("../app");
 
 jest.mock("../models/userModel"); // mocks every function in userModel
 jest.mock("bcrypt");
+jest.mock("../models/wordModel");
+jest.mock("../models/songModel");
 
 const userModel = require("../models/userModel");
 const bcrypt = require("bcrypt");
+const wordModel = require("../models/wordModel");
+const songModel = require("../models/songModel");
+jest.mock("../middleware/authMiddleware", () => {
+    return {
+        authenticate: (req, res, next) => {
+            req.user = { id: 1, email: "testemail@example.com", name: "testuser" };
+            next();
+        }
+    };
+});
 
 beforeEach( () => {jest.clearAllMocks(); });
 
@@ -110,5 +122,40 @@ describe("POST /api/auth/login", () =>{
 
         expect(res.statusCode).toBe(500);
         expect(res.body).toMatchObject({error: "Server Error"});
+    });
+});
+
+describe("GET /api/users/userInfo - getUserInfo controller test", () => {
+    
+    test("for authenticated user, the user's info and word/song info is provided.", async () => {
+        wordModel.getKnowWords.mockResolvedValue(5);
+        wordModel.findAllByUserId.mockResolvedValue([
+            { id: 1, word: "apple" },
+            { id: 2, word: "banana" }
+        ]);
+        songModel.findAllByUserId.mockResolvedValue([
+            { id: 1, title: "Let It Be" }
+        ]); 
+
+        const res = (await request(app).get("/api/auth/me"));
+
+        expect(res.statusCode).toBe(200);
+        expect(res.body).toEqual({
+            id: 1, 
+            email: "testemail@example.com",
+            name: "testuser",
+            knowWords: 5,
+            wholeWords: 2,
+            songs: 1
+        });
+    });
+
+    test("returns 500 when an error occurs when querying DB", async () => {
+        wordModel.getKnowWords.mockRejectedValue(new Error("Database Error"));
+
+        const res = await request(app).get("/api/auth/me");
+
+        expect(res.statusCode).toBe(500);
+        expect(res.body).toMatchObject({ error: "Server Error" });
     });
 });
