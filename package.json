@@ -16,7 +16,7 @@
   "main": "app.js",
   "scripts": {
     "start": "node server.js",
-    "test": "jest",
+    "test": "jest --silent",
     "test:coverage": "jest --coverage"
   },
   "jest": {
