@@ -1,6 +1,8 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const userModel = require("../models/userModel");
+const wordModel = require("../models/wordModel");
+const songModel = require("../models/songModel");
 
 async function register(req, res){
     try{
@@ -49,7 +51,25 @@ async function login(req, res){
 
     }catch(err){
         console.error(err);
-        res.status(500).json({error:"Server Error", message: err.message})
+        res.status(500).json({error:"Server Error", message: err.message});
+    }
+}
+
+async function getUserInfo(req, res){
+    try{
+        const user_id = req.user.id;
+        const user_email = req.user.email;
+        const user_name = req.user.name ;
+        const knowcount = await wordModel.getKnowWords(user_id);
+        const words = await wordModel.findAllByUserId(user_id);
+        const wordcount = words.length;
+        const songs = await songModel.findAllByUserId(user_id);
+        const songcount = songs.length;
+
+        res.status(200).json({id:user_id, email:user_email, name:user_name, knowWords: knowcount, wholeWords : wordcount, songs : songcount});
+    }catch(err){
+        console.error(err);
+        res.status(500).json({error:"Server Error", message: err.message});
     }
 }
 
@@ -68,4 +88,4 @@ function validateRegisterInfo({email, password, name}){ //
     return null ;
 }
 
-module.exports = {register, login, validateRegisterInfo};
+module.exports = {register, login, validateRegisterInfo, getUserInfo};

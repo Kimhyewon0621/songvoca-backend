@@ -57,5 +57,5 @@ async function getKnowWords(user_id){
   return result.rows[0].correct_word_count;
 }
 
-module.exports = { findBySongId, findAllByUserId, deleteById };
+module.exports = { findBySongId, findAllByUserId, deleteById, getKnowWords };
 
