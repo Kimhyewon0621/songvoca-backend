@@ -7,15 +7,14 @@ async function start(){
     try{
     await initDb();
 
-    // 데이터베이스 연결 테스트 함수
     await pool.query('SELECT 1');
-    console.log('PostgreSQL 연결 성공! (songvoca_db)');
+    console.log('PostgreSQL connection success! (songvoca_db)');
 
     app.listen(PORT, () =>{
         console.log(`our project if listening on port ${PORT}`);
     });
     }catch(err){
-        console.error('서버 시작 중 DB 연결 실패:', err);
+        console.error('Failed to connect DB while starting the server:', err);
     }
 
 }

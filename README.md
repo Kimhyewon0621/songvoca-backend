@@ -99,7 +99,7 @@ cp .env.example .env
 npm start
 ```
 
-Server runs at `http://localhost:8080`.
+Server runs at `http://localhost:PORT`.
 
 ### Environment Variables
 

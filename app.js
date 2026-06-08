@@ -22,9 +22,8 @@ app.use("/api/songs", songsRouter);
 app.use('/api/words', wordsRouter);
 app.use('/api/study-logs', studylogsRouter);
 
-// 4. 서버 작동 확인을 위한 임시 테스트 라우터
 app.get('/', (req, res) => {
-    res.send('Voca 프로젝트 백엔드 서버 작동 중!');
+    res.send('Backend Server for songvoca project is now runnig!');
 });
 
 const swaggerDocument = YAML.load("./openapi.yaml");
