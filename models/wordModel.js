@@ -71,5 +71,17 @@ async function createExtractedWords(user_id, song_id, words) {
   return savedWords;
 }
 
-module.exports = { findBySongId, findAllByUserId, deleteById, getKnowWords, createExtractedWords };
+// Get all words the user has studied (used for excluding from Gemini extraction)
+async function findStudiedWords(user_id) {
+  const result = await pool.query(
+    `SELECT DISTINCT w.word
+     FROM words w
+     JOIN studylogs sl ON sl.word_id = w.id
+     WHERE sl.user_id = $1`,
+    [user_id]
+  );
+  return result.rows.map(r => r.word);
+}
+
+module.exports = { findBySongId, findAllByUserId, deleteById, getKnowWords, createExtractedWords, findStudiedWords };
 

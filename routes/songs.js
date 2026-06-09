@@ -53,6 +53,12 @@ router.post('/:id/extract', authenticate, async (req, res) => {
       return res.status(400).json({ error: 'Lyrics are required' });
     }
 
+    // Get words the user has already studied
+    const studiedWords = await wordModel.findStudiedWords(user_id);
+    const excludeText = studiedWords.length > 0
+      ? `\n\nExclude these words that the user has already studied: ${studiedWords.join(', ')}`
+      : '';
+
     const prompt = `Extract Korean vocabulary from the following lyrics that would be useful for an intermediate learner (TOPIK level 3+).
 
 Rules:
@@ -71,7 +77,7 @@ Format:
 ]
 
 Lyrics:
-${lyrics}`;
+${lyrics}${excludeText}`;
 
     let text;
     try {
@@ -98,8 +104,10 @@ ${lyrics}`;
       return res.status(500).json({ error: 'Gemini returned invalid format' });
     }
 
+    const filteredWords = words.filter(w => !studiedWords.includes(w.word));
+
     // Save to DB
-    const savedWords = await wordModel.createExtractedWords(user_id, id, words);
+    const savedWords = await wordModel.createExtractedWords(user_id, id, filteredWords);
 
     res.json(savedWords);
 
