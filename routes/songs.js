@@ -4,7 +4,7 @@ const router = express.Router();
 const songController = require("../controllers/songController");
 const wordController = require('../controllers/wordController');
 const { authenticate } = require("../middleware/authMiddleware");
-const { pool } = require('../db');
+const wordModel = require('../models/wordModel');
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
@@ -99,18 +99,11 @@ ${lyrics}`;
     }
 
     // Save to DB
-    const savedWords = [];
-    for (const w of words) {
-      const result = await pool.query(
-        `INSERT INTO words (user_id, song_id, word, pos, definition)
-         VALUES ($1, $2, $3, $4, $5)
-         RETURNING id, song_id, word, pos, definition`,
-        [user_id, id, w.word, w.pos, w.definition]
-      );
-      savedWords.push(result.rows[0]);
-    }
+    // Save to DB
+    const savedWords = await wordModel.createExtractedWords(user_id, id, words);
 
     res.json(savedWords);
+    
   } catch (error) {
     console.error('Gemini extract error:', error);
     res.status(500).json({ error: 'Failed to extract words' });
