@@ -99,11 +99,10 @@ ${lyrics}`;
     }
 
     // Save to DB
-    // Save to DB
     const savedWords = await wordModel.createExtractedWords(user_id, id, words);
 
     res.json(savedWords);
-    
+
   } catch (error) {
     console.error('Gemini extract error:', error);
     res.status(500).json({ error: 'Failed to extract words' });

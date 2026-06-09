@@ -18,7 +18,8 @@ function getToken() {
 
 describe("POST /api/songs", () => {
   test("returns 201 when song is created", async () => {
-    songModel.create.mockResolvedValue(1);
+    const mockSong = { id: 1, title: "Spring Day", artist: "BTS", study_status: "not_started" };
+    songModel.create.mockResolvedValue(mockSong);
     const body = { title: "Spring Day", artist: "BTS", lyrics: "보고 싶다" };
     const res = await request(app)
       .post("/api/songs")
@@ -26,7 +27,7 @@ describe("POST /api/songs", () => {
       .send(body);
 
     expect(res.statusCode).toBe(201);
-    expect(res.body).toBe(1);
+    expect(res.body).toEqual(mockSong);
   });
 
   test("returns 401 when no token is provided", async () => {
@@ -56,8 +57,8 @@ describe("GET /api/songs", () => {
 describe("GET /api/songs/public", () => {
   test("returns 200 with all songs without auth", async () => {
     const mockSongs = [
-      { id: 1, title: "Spring Day", artist: "BTS", study_status: "not_started" },
-      { id: 2, title: "Love Dive", artist: "IVE", study_status: "completed" }
+      { id: 1, title: "Spring Day", artist: "BTS" },
+      { id: 2, title: "Love Dive", artist: "IVE" }
     ];
     songModel.findAll.mockResolvedValue(mockSongs);
 
