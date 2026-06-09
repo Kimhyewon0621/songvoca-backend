@@ -1,4 +1,4 @@
-const pool = require('../db');
+const {pool} = require('../db');
 
 class EmailAlreadyExistError extends Error {
   constructor(email) {
@@ -15,7 +15,7 @@ async function create({email, password_hash, name}){
         );
         return result.rows[0].id; // return the new id
     }catch(err){
-        if(err.code === 23505){ // tries to put same value in UNIQUE column
+        if(err.code === '23505'){ // tries to put same value in UNIQUE column
             throw new EmailAlreadyExistError(email);
         }
         throw err ;

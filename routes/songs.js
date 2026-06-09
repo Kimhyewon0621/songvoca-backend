@@ -1,5 +1,12 @@
+const { GoogleGenAI } = require("@google/genai");
 const express = require('express');
 const router = express.Router();
+const songController = require("../controllers/songController");
+const wordController = require('../controllers/wordController');
+const { authenticate } = require("../middleware/authMiddleware");
+const wordModel = require('../models/wordModel');
+
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 // LRCLIB API to search songs by title or artist
 router.get('/search', async (req, res) => {
@@ -14,23 +21,32 @@ router.get('/search', async (req, res) => {
     const data = await response.json();
 
     const filtered = data.filter(song => {
-        if (song.instrmental) return false; //exclude instrumental songs
-        if(!song.plainLyrics) return false; //exclude songs without lyrics
-        return /[가-힣]/.test(song.plainLyrics);    //onlu include songs with Korean lyrics
+        if (song.instrumental) return false;
+        if (!song.plainLyrics) return false;
+        return /[가-힣]/.test(song.plainLyrics);
     });
     
-    res.json(filtered[0] || null);
+    // Deduplicate by song title + artist (keep first occurrence)
+     const seen = new Set();
+    const unique = filtered.filter(song => {
+      const key = song.plainLyrics.substring(0, 100);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    
+    res.json(unique);
   } catch (error) {
     console.error('LRCLIB search error:', error);
     res.status(500).json({ error: 'Failed to search songs' });
   }
 });
 
-module.exports = router;
-
-//extract words from lyrics using Gemini API
-router.post('/extract', async (req, res) => {
+// Extract words from lyrics using Gemini API
+router.post('/:id/extract', authenticate, async (req, res) => {
   try {
+    const user_id = req.user.id;
+    const { id } = req.params;
     const { lyrics } = req.body;
     
     if (!lyrics) {
@@ -43,7 +59,7 @@ Rules:
 - Skip grammar particles, conjunctions, and very basic words
 - Focus on content words with clear meaning (nouns, verbs, adjectives, adverbs)
 - Return ONLY a JSON array, no explanation, no markdown, no code block
-- Maximum 8 words
+- Maximum 20 words
 
 Format:
 [
@@ -57,27 +73,48 @@ Format:
 Lyrics:
 ${lyrics}`;
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }]
-        })
-      }
-    );
+    let text;
+    try {
+      const result = await ai.models.generateContent({
+        model: "gemini-2.5-flash-lite",
+        contents: prompt,
+      });
+      text = result.text;
+    } catch (apiError) {
+      console.error('Gemini API error:', apiError);
+      return res.status(500).json({ error: 'Gemini API request failed' });
+    }
 
-    const data = await response.json();
-    const text = data.candidates[0].content.parts[0].text;
-    
-    // JSON parsing (eliminate code blocks)
     const cleanedText = text.replace(/```json|```/g, '').trim();
-    const words = JSON.parse(cleanedText);
     
-    res.json(words);
+    let words;
+    try {
+      words = JSON.parse(cleanedText);
+    } catch (parseError) {
+      return res.status(500).json({ error: 'Failed to parse Gemini response' });
+    }
+
+    if (!Array.isArray(words)) {
+      return res.status(500).json({ error: 'Gemini returned invalid format' });
+    }
+
+    // Save to DB
+    const savedWords = await wordModel.createExtractedWords(user_id, id, words);
+
+    res.json(savedWords);
+
   } catch (error) {
     console.error('Gemini extract error:', error);
     res.status(500).json({ error: 'Failed to extract words' });
   }
 });
+
+// Song CRUD
+router.get("/public", songController.getAllPublic);
+router.post("/", authenticate, songController.create);
+router.get("/", authenticate, songController.getAll);
+router.get("/:id", songController.getById);
+router.delete("/:id", authenticate, songController.remove);
+router.get('/:id/words', authenticate, wordController.getBySongId);
+
+module.exports = router;
