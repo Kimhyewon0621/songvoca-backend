@@ -57,5 +57,19 @@ async function getKnowWords(user_id){
   return result.rows[0].correct_word_count;
 }
 
-module.exports = { findBySongId, findAllByUserId, deleteById, getKnowWords };
+async function createExtractedWords(user_id, song_id, words) {
+  const savedWords = [];
+  for (const w of words) {
+    const result = await pool.query(
+      `INSERT INTO words (user_id, song_id, word, pos, definition)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING id, song_id, word, pos, definition`,
+      [user_id, song_id, w.word, w.pos, w.definition]
+    );
+    savedWords.push(result.rows[0]);
+  }
+  return savedWords;
+}
+
+module.exports = { findBySongId, findAllByUserId, deleteById, getKnowWords, createExtractedWords };
 
